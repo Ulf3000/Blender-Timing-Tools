@@ -1,12 +1,12 @@
 bl_info = {
     "name": "GP Timing Tools",
-    "author": "Your Name Here",
-    "version": (1, 0),
+    "author": "Alexander Mehler (Ulf3000)",
+    "version": (0, 0, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh > New Object",
-    "description": "Adds a new Mesh Object",
+    "description": "Adds a few Operators to make working with keyframes easier",
     "warning": "",
-    "doc_url": "",
+    "doc_url": "https://github.com/Ulf3000/Blender-Timing-Tools",
     "category": "Gpencil",
 }
 
@@ -15,13 +15,10 @@ import bpy
 from bpy.types import Operator
 
 
-
+#-------------- functions --------------------------------------------
 
 def refreshGPObject(obj):
     # trick to update the animation of the GP object
-    
-    # trick to update the animation of the GP object
-    #obj.data.layers.data.update_tag()
     
     for win in bpy.context.window_manager.windows:
         for area in win.screen.areas:
@@ -30,7 +27,6 @@ def refreshGPObject(obj):
             if area.type == 'VIEW_3D':
                 area.tag_redraw()                         
    
- # --------- select another frame ------------
     
 def jumpFrame(count):
 
@@ -211,11 +207,13 @@ def rippleMove(count):
                         if kf.frame_number - count == firstSelected.frame_number:
                             break
                     
-                    if kf.frame_number >= firstSelected.frame_number:
+                    if kf.frame_number >= firstSelected.frame_number:  # >=
                         kf.frame_number += count
                 layer.frames.update()
         
             refreshGPObject(obj)
+
+        #-------------------------------------------------------------------
 
         if obj.type != 'GPENCIL':
             for fCurve in obj.animation_data.action.fcurves   :
@@ -240,13 +238,10 @@ def rippleMove(count):
                         if kf.co.x - count == firstSelected.co.x:
                             break
                     
-                    if kf.co.x >= firstSelected.co.x:
+                    if kf.co.x >= firstSelected.co.x:  # >=
                         kf.co.x += count
                         kf.handle_left.x += count
                         kf.handle_right.x += count
-            #     layer.frames.update()
-        
-            # refreshGPObject(obj)
         
 # --------- make frame longer (or shorter) like adobe flash/animate F5 ------------
     
@@ -275,12 +270,42 @@ def rippleLength(count):
                 firstSelected = selectedKeyframes[0]        
                 
                 for kf in keyframes:
-                    if kf.frame_number > firstSelected.frame_number:
+                    if kf.frame_number > firstSelected.frame_number:   # >
                         kf.frame_number += count
                         
                 layer.frames.update()
 
             refreshGPObject(obj)
+
+        # ---------------------------------------------------------------------
+
+        if obj.type != 'GPENCIL':
+            for fCurve in obj.animation_data.action.fcurves   :
+                keyframes = fCurve.keyframe_points
+        
+                if len(keyframes)==0: # no keyframes
+                    continue
+        
+                selectedKeyframes = []
+        
+                for kf in keyframes:
+                    if kf.select_control_point == True:
+                        selectedKeyframes.append(kf)
+                
+                if len(selectedKeyframes)==0: # no keyframes selected
+                    continue
+        
+                firstSelected = selectedKeyframes[0]        
+        
+                for kf in keyframes:
+                    if count < 0:
+                        if kf.co.x - count == firstSelected.co.x:
+                            break
+                    
+                    if kf.co.x > firstSelected.co.x:  # >
+                        kf.co.x += count
+                        kf.handle_left.x += count
+                        kf.handle_right.x += count
             
             
 
